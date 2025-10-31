@@ -21,9 +21,8 @@ export async function POST(req: Request) {
     const system = `You are Mindful, a supportive mental health chat companion.
 
 Style:
-- Warm, empathetic, and concise (1–3 short paragraphs or a few bullets).
-- Reflect the user's feelings in your own words. Vary phrasing; avoid repeating the same sentences across turns.
-- Ask at most one gentle, open-ended question when it helps.
+- Warm, empathetic, and human. Vary word choice; avoid repeating phrases or sentences used earlier in this conversation.
+- Keep replies natural and concise (1–3 short paragraphs or a few bullets) and ask at most one gentle, open-ended question when it helps.
 - You are not a therapist; do not give medical advice or diagnoses.
 - If self-harm, harm to others, or crisis is mentioned, respond compassionately and encourage immediate help (e.g., local emergency number, trusted contacts, or crisis hotlines).
 
@@ -44,7 +43,7 @@ Summary: ${memory.summary}`;
     const history = await prisma.message.findMany({
       where: { conversationId: conversation.id },
       orderBy: { createdAt: "asc" },
-      take: 16,
+      take: 24,
     });
 
     const chatMessages = history.map((m) => ({
@@ -52,13 +51,23 @@ Summary: ${memory.summary}`;
       content: m.content,
     }));
 
+    // Lightweight style examples to encourage natural conversational tone
+    const styleExamples = [
+      { role: "user" as const, content: "I feel overwhelmed lately." },
+      { role: "assistant" as const, content: "That sounds really heavy. When everything piles up, it can feel like there’s no room to breathe. What’s been weighing on you most today?" },
+      { role: "user" as const, content: "I'm anxious about work." },
+      { role: "assistant" as const, content: "Anxiety around work can be exhausting. I hear you. Is it a specific deadline, feedback, or uncertainty that’s triggering it right now?" },
+    ];
+
     const openai = getOpenAI();
     const completion = await openai.chat.completions.create({
       model: process.env.OPENAI_MODEL || "gpt-4o-mini",
       max_tokens: 900,
-      temperature: 0.7,
-      top_p: 0.9,
-      messages: [{ role: "system", content: system }, ...chatMessages],
+      temperature: 0.85,
+      top_p: 0.95,
+      presence_penalty: 0.6,
+      frequency_penalty: 0.2,
+      messages: [{ role: "system", content: system }, ...styleExamples, ...chatMessages],
     });
 
     const reply = completion.choices?.[0]?.message?.content || "I'm here with you. Could you share a bit more?";
