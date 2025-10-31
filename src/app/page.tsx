@@ -29,7 +29,15 @@ export default function Home() {
       });
       const data = await res.json();
       if (data?.reply) setMessages((m) => [...m, { role: "assistant", content: data.reply }]);
-      else setMessages((m) => [...m, { role: "assistant", content: "I’m here with you. Could you share a bit more?" }]);
+      else {
+        const fallbacks = [
+          "I’m here and listening. What feels most present for you right now?",
+          "Thanks for sharing that. What would feel supportive in this moment?",
+          "That sounds tough. Want to tell me a bit more about what’s beneath it?",
+        ];
+        const pick = fallbacks[Math.floor(Math.random() * fallbacks.length)];
+        setMessages((m) => [...m, { role: "assistant", content: pick }]);
+      }
     } catch {
       setMessages((m) => [...m, { role: "assistant", content: "Sorry—something went wrong." }]);
     } finally {
