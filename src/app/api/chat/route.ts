@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { anthropic } from "@/lib/anthropic";
+import { getOpenAI } from "@/lib/openai";
 import { prisma } from "@/lib/db";
 import { getOrCreateConversation, getOrCreateUser, getUserMemory, updateMemory } from "@/lib/memory";
 
@@ -52,16 +52,16 @@ Summary: ${memory.summary}`;
       content: m.content,
     }));
 
-    const completion = await anthropic.messages.create({
-      model: "claude-3.5-sonnet-latest",
+    const openai = getOpenAI();
+    const completion = await openai.chat.completions.create({
+      model: process.env.OPENAI_MODEL || "gpt-4o-mini",
       max_tokens: 900,
       temperature: 0.7,
       top_p: 0.9,
-      system,
-      messages: chatMessages,
+      messages: [{ role: "system", content: system }, ...chatMessages],
     });
 
-    const reply = completion.content?.[0]?.type === "text" ? completion.content[0].text : "I'm here with you. Could you share a bit more?";
+    const reply = completion.choices?.[0]?.message?.content || "I'm here with you. Could you share a bit more?";
 
     // Save assistant reply
     const assistantMsg = await prisma.message.create({

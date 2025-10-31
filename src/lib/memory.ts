@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/db";
-import { anthropic } from "@/lib/anthropic";
+import { getOpenAI } from "@/lib/openai";
 
 export type Memory = {
   profile: Record<string, unknown>;
@@ -38,17 +38,18 @@ export async function updateMemory(userId: string, messages: { role: "user" | "a
 
   const userJson = JSON.stringify({ current, messages });
 
-  const resp = await anthropic.messages.create({
-    model: "claude-3.5-sonnet-latest",
+  const openai = getOpenAI();
+  const resp = await openai.chat.completions.create({
+    model: process.env.OPENAI_MODEL || "gpt-4o-mini",
     max_tokens: 400,
     temperature: 0.2,
-    system,
     messages: [
-      { role: "user", content: `Update memory given the input:\n${userJson}` },
+      { role: "system", content: system },
+      { role: "user", content: `Update memory given the input:\n${userJson}\n\nReturn ONLY JSON.` },
     ],
   });
 
-  const text = resp.content?.[0]?.type === "text" ? resp.content[0].text : "{}";
+  const text = resp.choices?.[0]?.message?.content ?? "{}";
   let parsed: Memory | null = null;
   try {
     parsed = JSON.parse(text) as Memory;

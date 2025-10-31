@@ -6,7 +6,8 @@ Live demo: https://mindful-chat-i3xta5mu6-sumits-projects-aede6cae.vercel.app
 
 Environment setup:
 - Copy `.env.example` to `.env`
-- Set `ANTHROPIC_API_KEY`
+- Set `OPENAI_API_KEY`
+- Optionally set `OPENAI_MODEL` (defaults to gpt-4o-mini)
 - `npm install` (if needed)
 
 First, run the development server:
