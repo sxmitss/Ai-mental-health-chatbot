@@ -2,6 +2,11 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
+Environment setup:
+- Copy `.env.example` to `.env`
+- Set `ANTHROPIC_API_KEY`
+- `npm install` (if needed)
+
 First, run the development server:
 
 ```bash
@@ -30,6 +35,10 @@ To learn more about Next.js, take a look at the following resources:
 You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
 ## Deploy on Vercel
+
+Add env vars in Vercel → Project Settings → Environment Variables:
+- `ANTHROPIC_API_KEY`
+- `DATABASE_URL` (e.g., `file:./prisma/dev.db` for preview)
 
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
