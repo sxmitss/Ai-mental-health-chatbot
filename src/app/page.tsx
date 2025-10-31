@@ -7,7 +7,7 @@ export default function Home() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [messages, setMessages] = useState<{ role: "user" | "assistant"; content: string }[]>([
-    { role: "assistant", content: "Hi, I’m Mindful. How are you feeling right now?" },
+    { role: "assistant", content: "Hi, I’m Mindful, your therapist AI. What feels most present for you today?" },
   ]);
   const endRef = useRef<HTMLDivElement>(null);
 
@@ -31,9 +31,9 @@ export default function Home() {
       if (data?.reply) setMessages((m) => [...m, { role: "assistant", content: data.reply }]);
       else {
         const fallbacks = [
-          "I’m here and listening. What feels most present for you right now?",
-          "Thanks for sharing that. What would feel supportive in this moment?",
-          "That sounds tough. Want to tell me a bit more about what’s beneath it?",
+          "I’m here with you. What feels most present for you right now?",
+          "Thank you for sharing. Would it help to unpack the top worry and one small step we could try?",
+          "That’s tough. Want to explore the feeling, the thoughts behind it, and one thing that might help tonight?",
         ];
         const pick = fallbacks[Math.floor(Math.random() * fallbacks.length)];
         setMessages((m) => [...m, { role: "assistant", content: pick }]);
@@ -54,7 +54,7 @@ export default function Home() {
           </div>
           <div>
             <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-100">Mindful</h1>
-            <p className="text-sm text-slate-600 dark:text-slate-400">A calm, supportive AI companion (OpenAI)</p>
+            <p className="text-sm text-slate-600 dark:text-slate-400">A therapist AI (OpenAI)</p>
           </div>
         </header>
 

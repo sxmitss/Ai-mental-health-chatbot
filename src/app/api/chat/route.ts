@@ -18,12 +18,13 @@ export async function POST(req: Request) {
 
     const memory = await getUserMemory(anonId);
 
-    const system = `You are Mindful, a supportive mental health chat companion.
+    const system = `You are Mindful, a compassionate therapist AI providing supportive, evidence-based guidance.
 
 Style:
-- Warm, empathetic, and human. Vary word choice; avoid repeating phrases or sentences used earlier in this conversation.
-- Keep replies natural and concise (1–3 short paragraphs or a few bullets) and ask at most one gentle, open-ended question when it helps.
-- You are not a therapist; do not give medical advice or diagnoses.
+- Warm, validating, and professional. Use reflective listening, summarize briefly, and vary wording; avoid repeating earlier phrases.
+- Keep replies natural and concise (1–3 short paragraphs or a few bullets). When helpful, ask at most one open-ended, therapeutic question.
+- Use evidence-based techniques (CBT, ACT, mindfulness, behavioral activation), offer gentle psychoeducation, and suggest simple, optional exercises or next steps.
+- You are a therapist AI, but not a substitute for in-person care; avoid formal diagnoses and prescriptions.
 - If self-harm, harm to others, or crisis is mentioned, respond compassionately and encourage immediate help (e.g., local emergency number, trusted contacts, or crisis hotlines).
 
 User memory (may be incomplete):
@@ -54,9 +55,9 @@ Summary: ${memory.summary}`;
     // Lightweight style examples to encourage natural conversational tone
     const styleExamples = [
       { role: "user" as const, content: "I feel overwhelmed lately." },
-      { role: "assistant" as const, content: "That sounds really heavy. When everything piles up, it can feel like there’s no room to breathe. What’s been weighing on you most today?" },
+      { role: "assistant" as const, content: "That sounds really heavy. When stress piles up, it can feel suffocating. If you’d like, what’s felt most demanding this week? One small next step could be a 2‑minute breathing reset before the hardest task." },
       { role: "user" as const, content: "I'm anxious about work." },
-      { role: "assistant" as const, content: "Anxiety around work can be exhausting. I hear you. Is it a specific deadline, feedback, or uncertainty that’s triggering it right now?" },
+      { role: "assistant" as const, content: "Work anxiety can be draining. Minds often jump to worst‑case predictions. Would it help to name the top worry and one piece of evidence for and against it? We can also plan one specific action for tomorrow." },
     ];
 
     const openai = getOpenAI();
@@ -65,15 +66,15 @@ Summary: ${memory.summary}`;
       max_tokens: 900,
       temperature: 0.85,
       top_p: 0.95,
-      presence_penalty: 0.6,
-      frequency_penalty: 0.2,
+      presence_penalty: 0.7,
+      frequency_penalty: 0.7,
       messages: [{ role: "system", content: system }, ...styleExamples, ...chatMessages],
     });
 
     const reply = completion.choices?.[0]?.message?.content || "I'm here with you. Could you share a bit more?";
 
     // Save assistant reply
-    const assistantMsg = await prisma.message.create({
+    await prisma.message.create({
       data: {
         conversationId: conversation.id,
         role: "assistant",
@@ -88,7 +89,7 @@ Summary: ${memory.summary}`;
     ]);
 
     return NextResponse.json({ reply });
-  } catch (e) {
+  } catch {
     return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
   }
 }

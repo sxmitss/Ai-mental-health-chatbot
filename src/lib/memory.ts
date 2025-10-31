@@ -1,6 +1,6 @@
-import { cookies } from "next/headers";
 import { prisma } from "@/lib/db";
 import { getOpenAI } from "@/lib/openai";
+import type { Prisma } from "@/generated/prisma/client";
 
 export type Memory = {
   profile: Record<string, unknown>;
@@ -26,8 +26,9 @@ export async function getOrCreateConversation(userId: string) {
 
 export async function getUserMemory(userId: string): Promise<Memory> {
   const user = await prisma.user.findUnique({ where: { id: userId } });
+  const profile = (user?.profile ?? {}) as Record<string, unknown>;
   return {
-    profile: (user?.profile as any) ?? {},
+    profile,
     summary: user?.summary ?? "",
   };
 }
@@ -58,7 +59,7 @@ export async function updateMemory(userId: string, messages: { role: "user" | "a
 
   await prisma.user.update({
     where: { id: userId },
-    data: { profile: parsed.profile as any, summary: parsed.summary },
+    data: { profile: parsed.profile as Prisma.InputJsonValue, summary: parsed.summary },
   });
   return parsed;
 }
