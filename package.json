@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "sh -c 'if [ -n \"$DATABASE_URL\" ]; then echo \"Running prisma migrate deploy...\"; npx prisma migrate deploy; else echo \"Skipping prisma migrate deploy (no DATABASE_URL)\"; fi && next build'",
+    "build": "sh -c 'DB=\"${DATABASE_URL:-${PRISMA_DATABASE_URL:-${POSTGRES_URL}}}\"; export DATABASE_URL=\"$DB\"; if [ -n \"$DATABASE_URL\" ]; then echo \"Prisma using DATABASE_URL\"; (npx prisma migrate deploy || npx prisma db push); else echo \"Skipping Prisma (no DATABASE_URL)\"; fi && next build'",
     "start": "next start",
     "lint": "eslint",
     "postinstall": "prisma generate"
