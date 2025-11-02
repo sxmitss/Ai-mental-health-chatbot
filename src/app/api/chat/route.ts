@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { getOpenAI } from "@/lib/openai";
 import { prisma } from "@/lib/db";
-import { getOrCreateConversation, getOrCreateUser, getUserMemory, updateMemory } from "@/lib/memory";
+import { HAS_DB, getOrCreateConversation, getOrCreateUser, getUserMemory, updateMemory } from "@/lib/memory";
 
 export async function POST(req: Request) {
   try {
@@ -31,21 +31,25 @@ User memory (may be incomplete):
 Profile: ${JSON.stringify(memory.profile)}
 Summary: ${memory.summary}`;
 
-    // Save user message
-    await prisma.message.create({
-      data: {
-        conversationId: conversation.id,
-        role: "user",
-        content: message.trim(),
-      },
-    });
+    // Save user message (optional if DB is available)
+    if (HAS_DB) {
+      await prisma.message.create({
+        data: {
+          conversationId: conversation.id,
+          role: "user",
+          content: message.trim(),
+        },
+      });
+    }
 
     // Load recent history to provide context and reduce repetition
-    const history = await prisma.message.findMany({
-      where: { conversationId: conversation.id },
-      orderBy: { createdAt: "asc" },
-      take: 24,
-    });
+    const history = HAS_DB
+      ? await prisma.message.findMany({
+          where: { conversationId: conversation.id },
+          orderBy: { createdAt: "asc" },
+          take: 24,
+        })
+      : [];
 
     const chatMessages = history.map((m) => ({
       role: m.role === "assistant" ? ("assistant" as const) : ("user" as const),
@@ -73,14 +77,16 @@ Summary: ${memory.summary}`;
 
     const reply = completion.choices?.[0]?.message?.content || "I'm here with you. Could you share a bit more?";
 
-    // Save assistant reply
-    await prisma.message.create({
-      data: {
-        conversationId: conversation.id,
-        role: "assistant",
-        content: reply,
-      },
-    });
+    // Save assistant reply (optional if DB is available)
+    if (HAS_DB) {
+      await prisma.message.create({
+        data: {
+          conversationId: conversation.id,
+          role: "assistant",
+          content: reply,
+        },
+      });
+    }
 
     // Update memory asynchronously (do not block response)
     void updateMemory(anonId, [
